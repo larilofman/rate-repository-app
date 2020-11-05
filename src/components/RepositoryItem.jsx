@@ -24,7 +24,7 @@ const ItemHeader = ({ ownerAvatarUrl, fullName, description, language }) => {
         },
         info: {
             flexWrap: 'wrap',
-            paddingBottom: 5
+            paddingBottom: 10
         },
         languageContainer: {
             backgroundColor: theme.colors.primary,
