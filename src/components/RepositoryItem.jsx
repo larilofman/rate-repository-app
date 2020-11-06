@@ -1,7 +1,10 @@
 import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, TouchableWithoutFeedback } from 'react-native';
 import theme from '../theme';
 import Text from './Text';
+import { useParams } from 'react-router-native';
+import useRepository from '../hooks/useRepository';
+import * as WebBrowser from 'expo-web-browser';
 
 const ItemHeader = ({ ownerAvatarUrl, fullName, description, language }) => {
     const styles = StyleSheet.create({
@@ -41,9 +44,9 @@ const ItemHeader = ({ ownerAvatarUrl, fullName, description, language }) => {
                 <Image style={styles.avatar} source={{ uri: ownerAvatarUrl }} />
             </View>
             <View style={styles.infoContainer}>
-                <Text style={styles.info} fontWeight='bold'>{fullName}</Text>
-                <Text style={styles.info} color='textSecondary'>{description}</Text>
-                <Text style={styles.languageContainer}>{language}</Text>
+                <Text testID="fullName" style={styles.info} fontWeight='bold'>{fullName}</Text>
+                <Text testID="description" style={styles.info} color='textSecondary'>{description}</Text>
+                <Text testID="language" style={styles.languageContainer}>{language}</Text>
             </View>
 
         </View >
@@ -58,7 +61,7 @@ const CountDisplay = ({ name, count }) => {
     });
     return (
         <View style={styles.container}>
-            <Text fontWeight='bold'>{count}</Text>
+            <Text testID={`${name}Count`} fontWeight='bold'>{count}</Text>
             <Text color='textSecondary'>{name}</Text>
         </View>
     );
@@ -78,35 +81,51 @@ const ItemFooter = ({ stargazersCount, forksCount, reviewCount, ratingAverage })
             <CountDisplay name='Forks' count={forksCount} />
             <CountDisplay name='Reviews' count={reviewCount} />
             <CountDisplay name='Rating' count={ratingAverage} />
-            {/* <Text>Stars: {stargazersCount}</Text>
-            <Text>Forks: {forksCount}</Text>
-            <Text>Reviews: {reviewCount}</Text>
-            <Text>Rating: {ratingAverage}</Text> */}
         </View>
     );
 };
 
 
 const RepositoryItem = ({ item }) => {
+    const params = useParams();
+    const { repository } = useRepository(params.id);
     const styles = StyleSheet.create({
         container: {
             display: 'flex',
             backgroundColor: theme.colors.white,
             padding: 15,
         },
-        tinyLogo: {
-            width: 50,
+        button: {
             height: 50,
+            backgroundColor: theme.colors.primary,
+            marginTop: 15,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 4,
         },
+        buttonText: {
+            color: theme.colors.white,
+        }
     });
 
+    const handleOpenWithBrowser = (url) => {
+        WebBrowser.openBrowserAsync(url);
+    };
+
     const formatCount = (number) => {
-        // return Math.abs(number) > 999 ? Math.sign(number) * ((Math.abs(number) / 1000).toFixed(1)) + 'k' : Math.sign(number) * Math.abs(number);
         return number > 999 ? (number / 1000).toFixed(1) + 'k' : number;
     };
 
+    if (!item && repository) {
+        item = repository;
+    }
+
+    if (!item) {
+        return null;
+    }
+
     return (
-        <View style={styles.container}>
+        <View style={styles.container} testID='repositoryItem'>
             <ItemHeader
                 ownerAvatarUrl={item.ownerAvatarUrl}
                 fullName={item.fullName}
@@ -119,6 +138,12 @@ const RepositoryItem = ({ item }) => {
                 reviewCount={formatCount(item.reviewCount)}
                 ratingAverage={formatCount(item.ratingAverage)}
             />
+            {params?.id && item.url &&
+                <TouchableWithoutFeedback testID="submitButton" onPress={() => handleOpenWithBrowser(item.url)} >
+                    <View style={styles.button}>
+                        <Text fontWeight='bold' style={styles.buttonText}>Open in GitHub</Text>
+                    </View>
+                </TouchableWithoutFeedback>}
         </View>
     );
 };

@@ -1,5 +1,6 @@
 import React from 'react';
-import { FlatList, View, StyleSheet } from 'react-native';
+import { FlatList, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { useHistory } from 'react-router-native';
 import RepositoryItem from './RepositoryItem';
 import useRepositories from '../hooks/useRepositories';
 
@@ -11,9 +12,8 @@ const styles = StyleSheet.create({
 
 const ItemSeparator = () => <View style={styles.separator} />;
 
-const RepositoryList = () => {
-    const { repositories } = useRepositories();
-
+export const RepositoryListContainer = ({ repositories }) => {
+    const history = useHistory();
     const repositoryNodes = repositories
         ? repositories.edges.map(edge => edge.node)
         : [];
@@ -23,15 +23,23 @@ const RepositoryList = () => {
             data={repositoryNodes}
             ItemSeparatorComponent={ItemSeparator}
             renderItem={({ item, index, separators }) => (
-                <RepositoryItem
-                    key={index}
-                    onShowUnderlay={separators.highlight}
-                    onHideUnderlay={separators.unhighlight}
-                    item={item}
-                />
+                <TouchableOpacity onPress={() => history.push(`/${item.id}`)} >
+                    <RepositoryItem
+                        key={index}
+                        onShowUnderlay={separators.highlight}
+                        onHideUnderlay={separators.unhighlight}
+                        item={item}
+                    />
+                </TouchableOpacity>
             )}
         />
     );
+};
+
+const RepositoryList = () => {
+    const { repositories } = useRepositories();
+
+    return <RepositoryListContainer repositories={repositories} />;
 };
 
 export default RepositoryList;

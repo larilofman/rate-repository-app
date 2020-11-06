@@ -22,6 +22,25 @@ query {
 }
 `;
 
+export const GET_REPOSITORY = gql`
+  query repository($id: ID!) {
+      repository(id: $id) {
+        id
+        fullName
+        description
+        ratingAverage
+        reviewCount
+        stargazersCount
+        forksCount
+        ownerAvatarUrl
+        language
+        url
+      }
+    }
+`;
+
+
+
 export const AUTHORIZED_USER = gql`
 query {
     authorizedUser {
