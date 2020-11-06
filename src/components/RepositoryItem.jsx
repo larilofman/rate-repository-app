@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, Image, TouchableWithoutFeedback } from 'react-native';
+import { View, StyleSheet, Image, TouchableWithoutFeedback, FlatList } from 'react-native';
 import theme from '../theme';
 import Text from './Text';
 import { useParams } from 'react-router-native';
 import useRepository from '../hooks/useRepository';
 import * as WebBrowser from 'expo-web-browser';
+import { format } from 'date-fns';
 
 const ItemHeader = ({ ownerAvatarUrl, fullName, description, language }) => {
     const styles = StyleSheet.create({
@@ -85,15 +86,108 @@ const ItemFooter = ({ stargazersCount, forksCount, reviewCount, ratingAverage })
     );
 };
 
+const ReviewItem = ({ review }) => {
+    const styles = StyleSheet.create({
+        container: {
+            display: 'flex',
+            flexDirection: 'row',
+            backgroundColor: theme.colors.white,
+            padding: 15
+        },
+        ratingContainer: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            borderWidth: 2,
+            borderColor: theme.colors.primary,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 15
+        },
+        ratingText: {
+            lineHeight: theme.fontSizes.subheading
+        },
+        textContainer: {
+            display: 'flex',
+            flexShrink: 1,
+        },
+        review: {
+            flexWrap: 'wrap',
+            paddingTop: 5,
+        }
 
-const RepositoryItem = ({ item }) => {
+    });
+    return (
+        <View style={styles.container}>
+            <View style={styles.ratingContainer}>
+                <Text color='primary' fontWeight='bold' fontSize='subheading' style={styles.ratingText}>
+                    {review.rating}
+                </Text>
+            </View>
+            <View style={styles.textContainer}>
+                <Text fontWeight='bold'>
+                    {review.user.username}
+                </Text>
+                <Text color='textSecondary'>
+                    {format(new Date(review.createdAt), 'dd.MM.yyyy')}
+                </Text>
+                <Text style={styles.review}>
+                    {review.text}
+                </Text>
+            </View>
+
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    separator: {
+        height: 10,
+    },
+});
+
+const ItemSeparator = () => <View style={styles.separator} />;
+
+export const SingleRepository = () => {
     const params = useParams();
     const { repository } = useRepository(params.id);
+    const reviews = repository?.reviews.edges.map(e => e.node);
+
+    const styles = StyleSheet.create({
+        container: {
+            display: 'flex',
+            backgroundColor: theme.colors.white,
+        }
+    });
+
+    if (!repository) {
+        return null;
+    }
+
+    return (
+        <FlatList
+            data={reviews}
+            renderItem={({ item }) => <ReviewItem review={item} />}
+            keyExtractor={({ id }) => id}
+            ItemSeparatorComponent={ItemSeparator}
+            ListHeaderComponent={() => <RepositoryItem item={repository} showButton={true} />}
+        />
+    );
+};
+
+const RepositoryItem = ({ item, showButton }) => {
+    const params = useParams();
+    const { repository } = useRepository(params.id);
+    const reviews = repository?.reviews.edges.map(e => e.node);
+    console.log(reviews);
     const styles = StyleSheet.create({
         container: {
             display: 'flex',
             backgroundColor: theme.colors.white,
             padding: 15,
+        },
+        extraMargin: {
+            marginBottom: 10
         },
         button: {
             height: 50,
@@ -101,31 +195,28 @@ const RepositoryItem = ({ item }) => {
             marginTop: 15,
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: 4,
+            borderRadius: 4
         },
         buttonText: {
             color: theme.colors.white,
         }
     });
 
-    const handleOpenWithBrowser = (url) => {
-        WebBrowser.openBrowserAsync(url);
-    };
-
     const formatCount = (number) => {
         return number > 999 ? (number / 1000).toFixed(1) + 'k' : number;
     };
 
-    if (!item && repository) {
-        item = repository;
-    }
+    const handleOpenWithBrowser = (url) => {
+        WebBrowser.openBrowserAsync(url);
+    };
 
-    if (!item) {
-        return null;
-    }
+    const containerStyle = [
+        styles.container,
+        showButton && styles.extraMargin
+    ];
 
     return (
-        <View style={styles.container} testID='repositoryItem'>
+        <View style={containerStyle} testID='repositoryItem'>
             <ItemHeader
                 ownerAvatarUrl={item.ownerAvatarUrl}
                 fullName={item.fullName}
@@ -138,12 +229,11 @@ const RepositoryItem = ({ item }) => {
                 reviewCount={formatCount(item.reviewCount)}
                 ratingAverage={formatCount(item.ratingAverage)}
             />
-            {params?.id && item.url &&
-                <TouchableWithoutFeedback testID="submitButton" onPress={() => handleOpenWithBrowser(item.url)} >
-                    <View style={styles.button}>
-                        <Text fontWeight='bold' style={styles.buttonText}>Open in GitHub</Text>
-                    </View>
-                </TouchableWithoutFeedback>}
+            {showButton && <TouchableWithoutFeedback testID="submitButton" onPress={() => handleOpenWithBrowser(item.url)} >
+                <View style={styles.button}>
+                    <Text fontWeight='bold' style={styles.buttonText}>Open in GitHub</Text>
+                </View>
+            </TouchableWithoutFeedback>}
         </View>
     );
 };

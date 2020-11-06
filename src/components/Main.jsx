@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Route, Switch, Redirect } from 'react-router-native';
 import RepositoryList from './RepositoryList';
-import RepositoryItem from './RepositoryItem';
+import { SingleRepository } from './RepositoryItem';
 import AppBar from './AppBar';
 import SignIn from './SignIn';
 import SignOut from './SignOut';
@@ -28,7 +28,7 @@ const Main = () => {
                     <SignOut />
                 </Route>
                 <Route path="/:id" exact>
-                    <RepositoryItem />
+                    <SingleRepository />
                 </Route>
                 <Route path="/" exact>
                     <RepositoryList />
