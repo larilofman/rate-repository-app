@@ -150,19 +150,19 @@ const ItemSeparator = () => <View style={styles.separator} />;
 
 export const SingleRepository = () => {
     const params = useParams();
-    const { repository } = useRepository(params.id);
+    const { repository, fetchMore } = useRepository({ id: params.id, firstReviews: 5 });
     const reviews = repository?.reviews.edges.map(e => e.node);
 
-    const styles = StyleSheet.create({
-        container: {
-            display: 'flex',
-            backgroundColor: theme.colors.white,
-        }
-    });
-
+    if (reviews) {
+        console.log(reviews.length);
+    }
     if (!repository) {
         return null;
     }
+
+    const onEndReach = () => {
+        fetchMore();
+    };
 
     return (
         <FlatList
@@ -171,15 +171,13 @@ export const SingleRepository = () => {
             keyExtractor={({ id }) => id}
             ItemSeparatorComponent={ItemSeparator}
             ListHeaderComponent={() => <RepositoryItem item={repository} showButton={true} />}
+            onEndReached={onEndReach}
+            onEndReachedThreshold={0.5}
         />
     );
 };
 
 const RepositoryItem = ({ item, showButton }) => {
-    const params = useParams();
-    const { repository } = useRepository(params.id);
-    const reviews = repository?.reviews.edges.map(e => e.node);
-    console.log(reviews);
     const styles = StyleSheet.create({
         container: {
             display: 'flex',
@@ -229,11 +227,12 @@ const RepositoryItem = ({ item, showButton }) => {
                 reviewCount={formatCount(item.reviewCount)}
                 ratingAverage={formatCount(item.ratingAverage)}
             />
-            {showButton && <TouchableWithoutFeedback testID="submitButton" onPress={() => handleOpenWithBrowser(item.url)} >
-                <View style={styles.button}>
-                    <Text fontWeight='bold' style={styles.buttonText}>Open in GitHub</Text>
-                </View>
-            </TouchableWithoutFeedback>}
+            {showButton &&
+                <TouchableWithoutFeedback onPress={() => handleOpenWithBrowser(item.url)} >
+                    <View style={styles.button}>
+                        <Text fontWeight='bold' style={styles.buttonText}>Open in GitHub</Text>
+                    </View>
+                </TouchableWithoutFeedback>}
         </View>
     );
 };
