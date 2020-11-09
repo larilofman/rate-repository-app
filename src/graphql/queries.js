@@ -75,18 +75,19 @@ query getAuthorizedUser($includeReviews: Boolean = false, $first: Int, $after: S
         edges {
           node {
             id
-              text
-              rating
-              createdAt
-              repositoryId
-              repository {
-                name
-                ownerName
-              }
-              user {
-                id
-                username
-              }
+            text
+            rating
+            createdAt
+            repositoryId
+            repository {
+              name
+              ownerName
+              url
+            }
+            user {
+              id
+              username
+            }
           }
           cursor
         }

@@ -3,7 +3,7 @@ import { GET_AUTHORIZED_USER } from '../graphql/queries';
 
 const useAuth = (includeReviews = false, firstReviews = 5) => {
     const variables = { includeReviews, first: firstReviews };
-    const { data, loading, fetchMore, ...result } = useQuery(GET_AUTHORIZED_USER, { variables, fetchPolicy: 'cache-and-network' });
+    const { data, loading, fetchMore, refetch, ...result } = useQuery(GET_AUTHORIZED_USER, { variables, fetchPolicy: 'cache-and-network' });
 
     const handleFetchMore = () => {
         const canFetchMore =
@@ -41,6 +41,7 @@ const useAuth = (includeReviews = false, firstReviews = 5) => {
     return {
         authorizedUser: data && data.authorizedUser,
         fetchMore: handleFetchMore,
+        refetch,
         loading,
         ...result
     };

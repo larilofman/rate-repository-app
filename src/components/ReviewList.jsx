@@ -1,19 +1,15 @@
-import React, { useState } from 'react';
-import { FlatList, View, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import React from 'react';
+import { FlatList, View, StyleSheet, TouchableWithoutFeedback, Alert } from 'react-native';
 import Text from './Text';
-import { useHistory } from 'react-router-native';
-import RepositoryItem from './RepositoryItem';
-import useRepositories from '../hooks/useRepositories';
-import RNPickerSelect from 'react-native-picker-select';
-import FilterBar from './FilterBar';
 import theme from '../theme';
-import { useDebounce } from 'use-debounce';
 import { ReviewItem } from './RepositoryItem';
-
+import * as WebBrowser from 'expo-web-browser';
 import useAuth from '../hooks/useAuth';
+import useDeleteReview from '../hooks/useDeleteReview';
 
 
-const ReviewContainer = ({ review }) => {
+const ReviewContainer = ({ review, refetch }) => {
+    const [deleteReview] = useDeleteReview();
 
     const styles = StyleSheet.create({
         container: {
@@ -49,6 +45,39 @@ const ReviewContainer = ({ review }) => {
             color: theme.colors.white,
         }
     });
+
+    const onViewRepository = () => {
+        WebBrowser.openBrowserAsync(review.repository.url);
+    };
+
+    const onDeleteReview = async () => {
+        try {
+            await deleteReview(review.id);
+            await refetch();
+        } catch (error) {
+            console.log(error);
+        }
+
+    };
+
+    const onPressDelete = () =>
+        Alert.alert(
+            'Delete review',
+            'Are you sure you want to delete this review?',
+            [
+                {
+                    text: 'Cancel',
+                    onPress: () => console.log('Cancel Pressed'),
+                    style: 'cancel'
+                },
+                {
+                    text: 'OK',
+                    onPress: onDeleteReview
+                }
+            ],
+            { cancelable: false }
+        );
+
     return (
         <View style={styles.container}>
             <ReviewItem
@@ -56,12 +85,12 @@ const ReviewContainer = ({ review }) => {
                 showUsername={false}
             />
             <View style={styles.buttonContainer}>
-                <TouchableWithoutFeedback onPress={() => console.log('view')} >
+                <TouchableWithoutFeedback onPress={onViewRepository} >
                     <View style={[styles.button, styles.viewButton]}>
                         <Text fontWeight='bold' style={styles.buttonText}>View repository</Text>
                     </View>
                 </TouchableWithoutFeedback>
-                <TouchableWithoutFeedback onPress={() => console.log('delete')} >
+                <TouchableWithoutFeedback onPress={onPressDelete} >
                     <View style={[styles.button, styles.deleteButton]}>
                         <Text fontWeight='bold' style={styles.buttonText}>Delete review</Text>
                     </View>
@@ -80,8 +109,7 @@ const styles = StyleSheet.create({
 
 const ItemSeparator = () => <View style={styles.separator} />;
 
-export const ReviewListContainer = ({ reviews, onEndReach }) => {
-    const history = useHistory();
+export const ReviewListContainer = ({ reviews, refetch, onEndReach }) => {
     const reviewNodes = reviews
         ? reviews.edges.map(edge => edge.node)
         : [];
@@ -98,6 +126,7 @@ export const ReviewListContainer = ({ reviews, onEndReach }) => {
                     onShowUnderlay={separators.highlight}
                     onHideUnderlay={separators.unhighlight}
                     review={item}
+                    refetch={refetch}
                 />
             )}
         />
@@ -105,15 +134,20 @@ export const ReviewListContainer = ({ reviews, onEndReach }) => {
 };
 
 const ReviewList = () => {
-    const { authorizedUser, fetchMore } = useAuth(true, 6);
+    const { authorizedUser, fetchMore, refetch } = useAuth(true, 6);
 
     const onEndReach = () => {
         fetchMore();
     };
 
+    if (!authorizedUser) {
+        return null;
+    }
+
     return (
         <ReviewListContainer
             reviews={authorizedUser.reviews}
+            refetch={refetch}
             onEndReach={onEndReach}
         />
     );
