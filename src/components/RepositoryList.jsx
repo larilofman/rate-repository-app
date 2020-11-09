@@ -82,37 +82,6 @@ const styles = StyleSheet.create({
 
 const ItemSeparator = () => <View style={styles.separator} />;
 
-// export const RepositoryListContainer = ({ repositories, sortingOrder, setSortingOrder, searchQuery, setSearchQuery }) => {
-//     const history = useHistory();
-//     const repositoryNodes = repositories
-//         ? repositories.edges.map(edge => edge.node)
-//         : [];
-
-//     return (
-//         <FlatList
-//             data={repositoryNodes}
-//             ListHeaderComponent={() =>
-//                 <HeaderComponent
-//                     sortingOrder={sortingOrder}
-//                     setSortingOrder={setSortingOrder}
-//                     searchQuery={searchQuery}
-//                     setSearchQuery={setSearchQuery}
-//                 />}
-//             ItemSeparatorComponent={ItemSeparator}
-//             renderItem={({ item, index, separators }) => (
-//                 <TouchableOpacity onPress={() => history.push(`/${item.id}`)} >
-//                     <RepositoryItem
-//                         key={index}
-//                         onShowUnderlay={separators.highlight}
-//                         onHideUnderlay={separators.unhighlight}
-//                         item={item}
-//                     />
-//                 </TouchableOpacity>
-//             )}
-//         />
-//     );
-// };
-
 export class RepositoryListContainer extends React.Component {
     renderHeader = () => {
         const props = this.props;

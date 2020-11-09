@@ -11,7 +11,7 @@ const SignOut = () => {
     useEffect(() => {
         const signOutUser = async () => {
             await signOut();
-            history.goBack();
+            history.push('/sign-in');
         };
         signOutUser();
     });

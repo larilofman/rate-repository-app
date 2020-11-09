@@ -86,7 +86,7 @@ const ItemFooter = ({ stargazersCount, forksCount, reviewCount, ratingAverage })
     );
 };
 
-const ReviewItem = ({ review }) => {
+export const ReviewItem = ({ review, showUsername = true }) => {
     const styles = StyleSheet.create({
         container: {
             display: 'flex',
@@ -104,9 +104,6 @@ const ReviewItem = ({ review }) => {
             alignItems: 'center',
             marginRight: 15
         },
-        ratingText: {
-            lineHeight: theme.fontSizes.subheading
-        },
         textContainer: {
             display: 'flex',
             flexShrink: 1,
@@ -120,13 +117,15 @@ const ReviewItem = ({ review }) => {
     return (
         <View style={styles.container}>
             <View style={styles.ratingContainer}>
-                <Text color='primary' fontWeight='bold' fontSize='subheading' style={styles.ratingText}>
+                <Text color='primary' fontWeight='bold' fontSize='subheading'>
                     {review.rating}
                 </Text>
             </View>
             <View style={styles.textContainer}>
                 <Text fontWeight='bold'>
-                    {review.user.username}
+                    {showUsername
+                        ? review.user.username
+                        : `${review.repository.ownerName}/${review.repository.name}`}
                 </Text>
                 <Text color='textSecondary'>
                     {format(new Date(review.createdAt), 'dd.MM.yyyy')}
@@ -153,9 +152,6 @@ export const SingleRepository = () => {
     const { repository, fetchMore } = useRepository({ id: params.id, firstReviews: 5 });
     const reviews = repository?.reviews.edges.map(e => e.node);
 
-    if (reviews) {
-        console.log(reviews.length);
-    }
     if (!repository) {
         return null;
     }
